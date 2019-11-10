@@ -1,0 +1,92 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Data.SqlClient;
+using Entidades;
+
+namespace Datos
+{
+    public class dDatos
+    {
+        DataBase db = new DataBase();
+
+        public string Insertar(eDatos obj)
+        {
+            try
+            {
+                SqlConnection con = db.ConectaDB();
+                string insert = string.Format("INSERT INTO datos (codigo, nombre, sueldo, fechanac) VALUES ({0}, '{1}', {2}, '{3}')", obj.Codigo, obj.Nombre, obj.Sueldo, obj.FechaNac);
+                SqlCommand cmd = new SqlCommand(insert, con);
+                cmd.ExecuteNonQuery();
+                return "Se insertaron los datos";
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+            finally
+            {
+                db.DesconectaDB();
+            }
+        }
+
+        public string Modificar(eDatos obj)
+        {
+            try
+            {
+                SqlConnection con = db.ConectaDB();
+                string update = string.Format("UPDATE datos SET nombre='{0}', sueldo={1}, fechanac='{2}' WHERE codigo={3}", obj.Nombre, obj.Sueldo, obj.FechaNac, obj.Codigo);
+                SqlCommand cmd = new SqlCommand(update, con);
+                cmd.ExecuteNonQuery();
+                return "Se modificaron los datos";
+            }
+            catch(Exception e)
+            {
+                return e.Message;
+            }
+            finally
+            {
+                db.DesconectaDB();
+            }
+        }
+
+        public List<eDatos>ListarTodo()
+        {
+            try
+            {
+                List<eDatos> lsdatos = new List<eDatos>();
+                DateTime d;
+                eDatos objdatos = null;
+
+                SqlConnection con = db.ConectaDB();
+                string select = string.Format("SELECT codigo, nombre, sueldo, fechanac FROM datos");
+                SqlCommand cmd = new SqlCommand(select, con);
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                while(reader.Read())
+                {
+                    objdatos = new eDatos();
+                    objdatos.Codigo = (int)reader["codigo"];
+                    objdatos.Nombre = (string)reader["nombre"];
+                    objdatos.Sueldo = (decimal)reader["sueldo"];
+                    d = (DateTime)reader["fechanac"];
+                    objdatos.FechaNac = d.ToShortDateString();
+
+                    lsdatos.Add(objdatos);
+                }
+                reader.Close();
+                return lsdatos;
+            }
+            catch(Exception e)
+            {
+                return null;
+            }
+            finally
+            {
+                db.DesconectaDB();
+            }
+        }
+    }
+}
