@@ -1,0 +1,96 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using Entidades;
+using Negocio;
+
+namespace Presentacion
+{
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow : Window
+    {
+        nDatos gdatos = new nDatos();
+        eDatos datoseleccionado = null;
+        int codpersona;
+
+        public MainWindow()
+        {
+            InitializeComponent();
+            MostrarDatos();
+        }
+
+        private void MostrarDatos()
+        {
+            dataGrid.ItemsSource = gdatos.ListarDatos();
+        }
+
+        private void btnRegistrar_Click(object sender, RoutedEventArgs e)
+        {
+            int codigo = Convert.ToInt32(txtCodigo.Text);
+            string nombre = txtNombre.Text;
+            decimal sueldo = Convert.ToDecimal(txtSueldo.Text);
+            DateTime fecha = (DateTime)dtimeFecha.SelectedDate;
+
+            List<eDatos> lista;
+            lista = gdatos.ListarDatos();
+
+            if (txtCodigo.Text != "" && txtNombre.Text != "" && txtSueldo.Text != "" && dtimeFecha.Text != "")
+            {
+                if (!lista.Exists(delegate (eDatos value)
+                 {
+                     return value.Codigo == codigo;
+                 }))
+                {
+                    MessageBox.Show(gdatos.RegistrarDatos(codigo, nombre, sueldo, fecha));
+                    MostrarDatos();
+                    txtCodigo.Clear();
+                    txtNombre.Clear();
+                    txtSueldo.Clear();
+                    dtimeFecha.SelectedDate = null;
+                    txtCodigo.Focus();
+                }
+                else
+                    MessageBox.Show("El codigo ingresado ya existe");
+            }
+            else
+                MessageBox.Show("Todos los campos deben estar completos");
+        }
+
+        private void dataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            datoseleccionado = dataGrid.SelectedItem as eDatos;
+            if (datoseleccionado != null)
+            {
+                codpersona = datoseleccionado.Codigo;
+                txtCodigo.Text = codpersona.ToString();
+                txtNombre.Text = datoseleccionado.Nombre;
+                txtSueldo.Text = datoseleccionado.Sueldo.ToString();
+                dtimeFecha.Text = datoseleccionado.FechaNac;
+            }
+        }
+
+        private void btnModificar_Click(object sender, RoutedEventArgs e)
+        {
+            if (datoseleccionado != null)
+            {
+                MessageBox.Show(gdatos.ModificarDatos(codpersona, txtNombre.Text, Convert.ToDecimal(txtSueldo.Text), Convert.ToDateTime(dtimeFecha.Text)));
+                MostrarDatos();
+            }
+            else
+                MessageBox.Show("Debe seleccionar un dato");
+        }
+    }
+}
